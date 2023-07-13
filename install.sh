@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# export IFS=":"
-# sentence="$PATH"
+export IFS=":"
+sentence="$PATH"
 INSTALLATION_DIR="$HOME/.local/bin"
 
 if [[ $PATH == *"$INSTALLATION_DIR"* ]]; then
