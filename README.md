@@ -19,7 +19,7 @@ Run command
 ```bash
 git-puller "$PWD"
 ```
-note: `$PWD` argument is not mandatory, but is is recomendet since it is gonna be easyer to find this process in `htop` or `ps` lists.  
+note: `$PWD` argument is not mandatory, but it is recomendet since it is gonna be easyer to find this process in `htop` or `ps` lists.  
 
 Or like this:
 ```bash
