@@ -14,7 +14,7 @@ log = logging.getLogger('git-puller')
 class GitControl:
     def __init__(self, repository: Path):
         self._repository = repository
-        assert self._is_git_repository(repository), f'Not a git repository: `{repository}`'
+        self._is_git_repository(repository)
 
     def _is_git_repository(self, directory: Path) -> bool:
         if directory is None:
@@ -22,11 +22,14 @@ class GitControl:
 
         try:
             directory.resolve(strict=True)
-            self._command('status')
         except Exception as e:
-            log.error(f'Path not found: {e.__class__.__name__}: {e}')
-            return False
-        return True
+            raise ValueError(f'Path not found: {e.__class__.__name__}: {e}')
+
+        try:
+            self._command('status')
+        except subprocess.CalledProcessError as ae:
+            log.debug(f'Not a git repository: {ae.__class__.__name__}: {ae}')
+            raise ValueError(f'Not a git repository.')
 
     def _command(self, command: str) -> subprocess.CompletedProcess:
         p = subprocess.run(['git', '-C', f'{self._repository}', command], capture_output=True, encoding='utf8')
@@ -35,15 +38,26 @@ class GitControl:
 
     def pull(self):
         p = self._command('pull')
-        print('stdout', p.stdout.strip())
+        out = p.stdout.strip()
+
+        if 'conflict' in out.lower():
+            message = f'Pull triggered conflicts: \n{out}'
+            log.error(message)
+            raise ValueError(message)
+
+        print('stdout:', out.strip())
 
 
 
 def main(git_controller: GitControl):
 
-    while True:
-        git_controller.pull()
-        sleep(5)
+    try:
+        while True:
+            git_controller.pull()
+            sleep(5)
+    except AssertionError as ae:
+        log.error(f'{ae.__class__.__name__}: {ae}')
+        raise
 
 
 if __name__ == '__main__':
@@ -57,8 +71,13 @@ if __name__ == '__main__':
         log.error(f'Not expected number of arguments: {len(self.argv)}.')
         sys.exit(1)
 
-    git_controller = GitControl(d)
+
     try:
+        git_controller = GitControl(d)
         main(git_controller)
     except KeyboardInterrupt:
         log.info('Bye')
+    except Exception as e:
+        log.error(f'{e.__class__.__name__}: {e}')
+        sys.exit(1)
+

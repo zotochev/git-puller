@@ -1,6 +1,9 @@
 # git-puller
 Script that starts in git repository and pulls it every 10 seconds
 
+## Important notes
+Script not tested on merge conflicts and will exit with error if conflict appears.
+
 ## Installation
 ```bash
 ./install.sh
